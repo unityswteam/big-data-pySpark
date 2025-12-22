@@ -123,6 +123,73 @@ def transform_json(df):
     
     return df
 
+# Transform CSV and Parquet
+@task(cache_policy=NO_CACHE)
+def transform_regular(df):
+    """
+    Transform CSV and Parquet data (regular format).
+    """
+    df = df.withColumnRenamed("last", "current_value") \
+           .withColumnRenamed("previous", "previous_value")
+
+    df = df.withColumn("current_value", col("current_value").cast("double")) \
+           .withColumn("previous_value", col("previous_value").cast("double")) \
+           .fillna({"current_value": 0, "previous_value": 0}) \
+           .withColumn("change", col("current_value") - col("previous_value")) \
+           .withColumn(
+               "trend",
+               when(col("change") > 0, "UP")
+               .when(col("change") < 0, "DOWN")
+               .otherwise("NO_CHANGE")
+           ) \
+           .withColumn("country", upper(trim(col("country")))) \
+           .withColumn("reference_date", to_date(col("referance"), "yyyy-MM")) \
+           .filter(col("current_value") > 0) \
+           .dropDuplicates(["country", "referance"])
+    
+    return df
+
+# Simple JSON transform (if data is actually just 1 record per row)
+@task(cache_policy=NO_CACHE)
+def transform_json_simple(df):
+    """
+    Simple transform assuming only the first field (0) contains data.
+    This is based on your sample showing 'ABD' in country.0
+    """
+    print("Using simple JSON transform (extracting first field only)")
+    
+    # Extract the first field from each struct
+    df = df.withColumn("country", col("country.0")) \
+           .withColumn("last", col("last.0")) \
+           .withColumn("previous", col("previous.0")) \
+           .withColumn("referance", col("referance.0")) \
+           .withColumn("unit", col("unit.0"))
+    
+    # Drop the original struct columns
+    df = df.select("country", "last", "previous", "referance", "unit")
+    
+    # Now apply regular transform
+    df = df.withColumnRenamed("last", "current_value") \
+           .withColumnRenamed("previous", "previous_value")
+
+    df = df.withColumn("current_value", col("current_value").cast("double")) \
+           .withColumn("previous_value", col("previous_value").cast("double")) \
+           .fillna({"current_value": 0, "previous_value": 0}) \
+           .withColumn("change", col("current_value") - col("previous_value")) \
+           .withColumn(
+               "trend",
+               when(col("change") > 0, "UP")
+               .when(col("change") < 0, "DOWN")
+               .otherwise("NO_CHANGE")
+           ) \
+           .withColumn("country", upper(trim(col("country")))) \
+           .withColumn("reference_date", to_date(col("referance"), "yyyy-MM")) \
+           .filter(col("current_value") > 0) \
+           .dropDuplicates(["country", "referance"])
+    
+    return df
+
+
     # Run
 if __name__ == "__main__":
     gold_reserves_etl(
