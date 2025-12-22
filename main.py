@@ -203,6 +203,31 @@ def integrate(csv_df, parquet_df, json_df):
     return csv_df.unionByName(parquet_df).unionByName(json_df)
 
 
+# Load to DuckDB
+@task(cache_policy=NO_CACHE)
+def load_to_duckdb(df, db_path="warehouse/analytics.duckdb"):
+    os.makedirs(os.path.dirname(db_path), exist_ok=True)
+    
+    print(f"Final DataFrame count: {df.count()}")
+    print("Final DataFrame sample:")
+    df.show(10)
+    
+    pdf = df.toPandas()
+    con = duckdb.connect(db_path)
+    con.execute("CREATE OR REPLACE TABLE gold_reserves AS SELECT * FROM pdf")
+    
+    # Verify the data was loaded
+    result = con.execute("SELECT COUNT(*) FROM gold_reserves").fetchone()
+    print(f"Loaded {result[0]} rows into DuckDB")
+    
+    con.close()
+
+# Cleanup
+@task(cache_policy=NO_CACHE)
+def cleanup(spark):
+    spark.stop()
+
+
     # Run
 
 if __name__ == "__main__":
