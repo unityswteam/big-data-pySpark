@@ -1,0 +1,14 @@
+# Prefect for workflow orchestration
+prefect>=2.10.15
+
+# PySpark for Spark DataFrame operations
+pyspark>=4.0.1
+
+# DuckDB for local analytics & SQL
+duckdb>=1.7.1
+
+# Optional: Pandas for local DataFrame manipulations (if needed in future)
+pandas>=2.0.3
+
+# Optional: NumPy (required by Pandas, sometimes by DuckDB)
+numpy>=1.26.0
