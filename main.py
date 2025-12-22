@@ -189,8 +189,22 @@ def transform_json_simple(df):
     
     return df
 
+# Integrate
+@task(cache_policy=NO_CACHE)
+def integrate(csv_df, parquet_df, json_df):
+    # Ensure all DataFrames have the same columns in the same order
+    cols = ["country", "current_value", "previous_value", "referance", "unit", "change", "trend", "reference_date"]
+    
+    # Select only the columns we need
+    csv_df = csv_df.select(cols)
+    parquet_df = parquet_df.select(cols)
+    json_df = json_df.select(cols)
+    
+    return csv_df.unionByName(parquet_df).unionByName(json_df)
+
 
     # Run
+
 if __name__ == "__main__":
     gold_reserves_etl(
         csv_path="data/gold_reserves (1).csv",
