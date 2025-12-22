@@ -44,12 +44,12 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 2. Project Structure
 text
-project/
+big-data-pySpark/
 ├── data/
 │   ├── gold_reserves (1).csv
 │   ├── gold_reserves (1).json
 │   └── gold_reserves (1).parquet
-├── etl_pipeline.py
+├── main.py
 ├── requirements.txt
 └── README.md
 3. Run the ETL Pipeline
@@ -92,7 +92,7 @@ Reserve changes (UP/DOWN indicators)
 Abebaw Addis : Spark Session and flow
 
 Abinet Ayele: Extraction and  JSON transformation logic, Requirements gathering, architecture design, documentation
-Daniel Hailu: Transforming  csv and Parquet
+
 Yohannes K/maryam    1500066: PySpark ETL pipeline development, JSON transformation logic
 
 Asregide Firdie: DuckDB integration, data modeling, orchestration setup,documentation
